@@ -16,8 +16,9 @@ public interface ProductService {
 	
 	public Product getProduct(String prodName);
 	
-	public List<Product> getProductByType(ProductCategory productCat);
+	public List<Product> getAllProducts();
 	
-	public boolean checkIfDamaged(Product p);
+	public Product updateProduct(String prodName);
 	
+	public boolean deleteProduct(String prodName);
 }

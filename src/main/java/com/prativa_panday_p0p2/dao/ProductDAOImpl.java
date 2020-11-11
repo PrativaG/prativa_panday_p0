@@ -27,43 +27,46 @@ public class ProductDAOImpl implements ProductDAO {
 
 	
 	@Override
-	public void createProduct(Product product)  {
-		// TODO Auto-generated method stub
-		System.out.println("Inside dao");
+	public boolean createProduct(Product product)  {
+		
 		try(Connection con = connUtil.createConnection()){
-			String sql = "insert into product (product_name, cost_price, sell_price, product_quantity, product_cat)" +"values (?, ?, ?, ?, ?, ?);";
+			String sql = "insert into product (product_name, cost_price, sell_price, product_quantity)" +"values (?, ?, ?, ?);";
+
 			ps = con.prepareStatement(sql);
+			
 			ps.setString(1, product.getProductName());
 			ps.setDouble(2, product.getCostPrice());
 			ps.setDouble(3, product.getSellPrice());
 			ps.setInt(4, product.getProductQuantity());
-//			ps.setDate(5, null);
-			ps.setString(6, product.getProductCategory().toString()); //changing enum productcategory to string
-			int i = ps.executeUpdate();
-			System.out.println("updated "+i);
+			
+			ps.executeUpdate();
+			return true;
 		}catch(SQLException e) {
 //			 Log.warn("PlayerDaoPostgres.readPlayer threw SQLException: " + e);
+			e.printStackTrace();
 		}
-
+		return false;
 	}
 
 	@Override
-	public Product retrieveProduct(String prodName) {
-		
+	public Product retrieveProduct(String productId) {
+		Product product = null;
 		try(Connection con = new ConnectionUtil().createConnection()){
-			String sql = "select * from product" +" where product_name = ?;";
+			String sql = "select * from product" +" where product_id = ?;";
 			ps = con.prepareStatement(sql) ;
-			ps.setString(1, prodName);
-			ResultSet rs = ps.executeQuery();
-			rs.next();
-			Product product = new Product(ProductCategory.valueOf(rs.getString(6)), 
-						rs.getString(1), rs.getDouble(2), rs.getDouble(3), rs.getInt(4));
 			
-		return product;
+			ps.setInt(1, Integer.parseInt(productId));
+			
+			ResultSet rs = ps.executeQuery();
+			while(rs.next()) {
+				product = new Product(rs.getString(2), rs.getDouble(3), rs.getDouble(4), rs.getInt(5));
+			}
+		
 		}catch(SQLException e) {
 			//log error
+			e.printStackTrace();
 		}
-		return null;
+		return product;
 	}
 
 	@Override
@@ -73,39 +76,44 @@ public class ProductDAOImpl implements ProductDAO {
 		
 		try(Connection con = new ConnectionUtil().createConnection()){
 			String sql = "select * from product;";
-			ps = con.prepareStatement(sql) ;
-			ResultSet rs = ps.executeQuery();
-			rs.next();
 			
+			ps = con.prepareStatement(sql) ;
+			
+			ResultSet rs = ps.executeQuery();
 			
 			while(rs.next()) {
-				Product product = new Product(ProductCategory.valueOf(rs.getString(6)), 
-												rs.getString(1), 
-												rs.getDouble(2),
-												rs.getDouble(3), 
-												rs.getInt(4));
+				Product product = new Product(rs.getString(2), 
+												rs.getDouble(3),
+												rs.getDouble(4), 
+												rs.getInt(5));
 				allProducts.add(product);
 			}
 			
 			
 		}catch(SQLException e) {
 			//log error
+			e.printStackTrace();
 		}
 		return allProducts;		
 	}
 
 	@Override
-	public void deleteProduct(String prodName) {
+	public boolean deleteProduct(String prodid) {
 		
 		try(Connection con = new ConnectionUtil().createConnection()){
-			String sql = "delete from product" +"where prodName = ?;";
-			ps = con.prepareStatement(sql) ;
-			ps.setString(1, prodName);
-			ps.executeUpdate();
+			String sql = "delete from product " +"where product_id = ?;";
 			
+			ps = con.prepareStatement(sql) ;
+			
+			ps.setInt(1, Integer.parseInt(prodid));
+			
+			ps.executeUpdate();
+			return true;
 		}catch(SQLException e) {
 			//log error
+			e.printStackTrace();
 		}
+		return false;
 	}
 
 }

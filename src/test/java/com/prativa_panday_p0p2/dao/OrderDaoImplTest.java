@@ -9,7 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
@@ -22,13 +21,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import com.prativa_panday_p0p2.pojos.Order;
 import com.prativa_panday_p0p2.pojos.Product;
 import com.prativa_panday_p0p2.pojos.Supplier;
-import com.prativa_panday_p0p2.pojos.Product.ProductCategory;
 import com.prativa_panday_p0p2.util.ConnectionUtil;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ProductDaoImplTest {
+public class OrderDaoImplTest {
 	
 	@Mock
 	private ConnectionUtil connUtil;
@@ -40,8 +39,16 @@ public class ProductDaoImplTest {
 	private PreparedStatement trueStmt;
 	private PreparedStatement spy;
 	
-	private ProductDAOImpl productDao;
+	private OrderDaoImpl orderDao;
+	private Order order;
+	
+	
+	@Mock
 	private Product product;
+
+	@Mock
+	private Supplier supplier;
+	
 	private String sql;
 
 	@BeforeClass
@@ -54,114 +61,118 @@ public class ProductDaoImplTest {
 
 	@Before
 	public void setUp() throws Exception {
-		
 		//Get new connection
 		realConn = new ConnectionUtil().createConnection();
 
 		//Set Dao with mocked ConnectionUtil
-		productDao = new ProductDAOImpl();
-		productDao.setConnUtil(connUtil);
-
-		//Initialize product test object
-		product = new Product("pizza", 23.9, 45.6, 20);
+		orderDao = new OrderDaoImpl();
+		orderDao.setConnUtil(connUtil);
+		
+		//initializing product and supplier to pass it while creating orders
+//		product = productDao.retrieveProduct("1");
+//		supplier = supplierDao.retrieveSupplier(1);
+		
+		when(product.getProductId()).thenReturn("1");
+		when(supplier.getSupplierId()).thenReturn(1);
+				
+		//Initialize order test object
+		order = new Order(product, supplier, 12, 287.76);
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		
 		realConn.close();
+
 	}
 
 	@Test
-	public void createProductTest() {
+	public void createOrderTest() {
+		sql = "insert into all_order (order_quantity, total_cost, product_id, supplier_id) " +"values (?, ?, ?, ?);";
 		
-		sql = "insert into product (product_name, cost_price, sell_price, product_quantity)" +"values (?, ?, ?, ?);";
-
 		try {
-			
 			createSpyConnection(sql);
-			
 		} catch (SQLException e) {
-
+			// TODO: handle exception
 			e.printStackTrace();
 		}
 		
 		try {
-			boolean result = productDao.createProduct(product);
+			System.out.println("From setup" +product.getProductId());
+
+			boolean result = orderDao.createOrder(order, product.getProductId(), supplier.getSupplierId());
 
 			//Verify statement was prepared properly
-			verify(spy).setString(1, product.getProductName());
-			verify(spy).setDouble(2, product.getCostPrice());
-			verify(spy).setDouble(3, product.getSellPrice());
-			verify(spy).setInt(4, product.getProductQuantity());
-			
+			verify(spy).setInt(1, order.getOrderQty());
+			verify(spy).setDouble(2, order.getTotal());
+			verify(spy).setInt(3, Integer.parseInt(product.getProductId()));
+			verify(spy).setInt(4, supplier.getSupplierId());
 			
 			verify(spy).executeUpdate();
 			
-			assertTrue("Product not created successfully", result == true);
-
+			assertEquals("Not able to create supplier ", true, result);
+			
 		} catch (SQLException e) {
-			fail("SQLException thrown in creation process:  " + e);
+			fail("SQLException thrown from creation method:  " + e);
 		}
 	}
-
+	
 	@Test
-	public void retreiveProductTest() {
+	public void retreiveOrderTest() {
 		
-		sql = "insert into product (product_name, cost_price, sell_price, product_quantity)" +"values (?, ?, ?, ?);";
-
+		sql = "insert into all_order (order_quantity, total_cost, product_id, supplier_id) " +"values (?, ?, ?, ?);";
+		
 		try {
 			trueStmt = realConn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-			trueStmt.setString(1, product.getProductName());
-			trueStmt.setDouble(2, product.getCostPrice());
-			trueStmt.setDouble(3, product.getSellPrice());
-			trueStmt.setInt(4, product.getProductQuantity());
+			
+			trueStmt.setInt(1, order.getOrderQty());
+			trueStmt.setDouble(2, order.getTotal());
+			trueStmt.setInt(3, Integer.parseInt(product.getProductId()));
+			trueStmt.setInt(4, supplier.getSupplierId());
 			
 			trueStmt.executeUpdate();
 			
 			//getting primary key id from database for later use
 			ResultSet key_rs = trueStmt.getGeneratedKeys();
 			key_rs.next();
-			product.setProductId(String.valueOf(key_rs.getInt(1)));
+			order.setOrderId(key_rs.getInt(1));
 			
-			assertTrue(" inserting test product not successful", 1 == trueStmt.executeUpdate());
+			assertTrue(" inserting test supplier no successful", 1 == trueStmt.executeUpdate());
 		} catch (SQLException e) {
-			fail("SQLException thrown in retreiving method  " + e);
+			fail("SQLException thrown  " + e);
 		}
 		
-		sql = "select * from product" +" where product_id = ?;";
+		sql = "select * from all_order " +"where order_id = ?;";
 		
-
 		try {
 			
 			createSpyConnection(sql);
 			
 		} catch (SQLException e) {
-
+			
 			e.printStackTrace();
 		}
 		
 		try {
-			Product testProduct = productDao.retrieveProduct(product.getProductId());
+			Order testOrder = orderDao.retreiveOrder(order.getOrderId());
 			
-			verify(spy).setInt(1, Integer.parseInt(product.getProductId()));
+			verify(spy).setInt(1, order.getOrderId());
 			
 			verify(spy).executeQuery();
 			
-			assertTrue("Not able to read the product", product.getProductId() == testProduct.getProductId());
+			assertEquals("Not able to read the supplier", testOrder.getOrderId(), order.getOrderId() );
 			
 		} catch (SQLException e) {
-			// TODO: handle exception
+			
 			fail("SQLException thrown from read supplier method:  " + e);
 		}
 	}
 	
 	@Test
-	public void retrieveAllProductTest() {
+	public void retrieveAllOrderTest() {
 		
-		sql = "select count(*) from product;";	
+		sql = "select count(*) from all_order;";
 		
-		int countProduct = -1;
+		int count = -1;
 		
 		try {
 			trueStmt = realConn.prepareStatement(sql);
@@ -170,15 +181,15 @@ public class ProductDaoImplTest {
 			
 			rs.next();
 			
-			countProduct = rs.getInt(1);
+			count = rs.getInt(1);
 		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			fail("SQLException thrown from count " +e1);
+
+			fail("SQLException thrown " +e1);
 		}
 		
-		sql = "select * from product;";
+		//testing retrieving order
+		sql = "select * from all_order;";
 		
-
 		try {
 			
 			createSpyConnection(sql);
@@ -188,43 +199,43 @@ public class ProductDaoImplTest {
 			e.printStackTrace();
 		}
 		
-		//testing retrieving products
 		try {
-			List<Product> allProduct = productDao.retrieveAllProduct();
+			List<Order> allOrder = orderDao.retreiveAllOrders();
 			
 			verify(spy).executeQuery();
 			
-			assertTrue("Total list size not matching with database ", countProduct == allProduct.size());
+			assertTrue("Total list size not matching with database ", count == allOrder.size());
 		} catch (SQLException e) {
 			fail("SQLException thrown from retrieveAllSuppliertest " +e);
 		}
 	}
 	
 	@Test
-	public void deleteProductTest() {
-		sql = "insert into product (product_name, cost_price, sell_price, product_quantity)" +"values (?, ?, ?, ?);";
+	public void deleteOrderTest() {
+		sql = "insert into all_order (order_quantity, total_cost, product_id, supplier_id) " +"values (?, ?, ?, ?);";
 		
 		try {
 			trueStmt = realConn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-			trueStmt.setString(1, product.getProductName());
-			trueStmt.setDouble(2, product.getCostPrice());
-			trueStmt.setDouble(3, product.getSellPrice());
-			trueStmt.setInt(4, product.getProductQuantity());
 			
-			int i = trueStmt.executeUpdate();
+			trueStmt.setInt(1, order.getOrderQty());
+			trueStmt.setDouble(2, order.getTotal());
+			trueStmt.setInt(3, Integer.parseInt(product.getProductId()));
+			trueStmt.setInt(4, supplier.getSupplierId());
+			
+			trueStmt.executeUpdate();
 			
 			//getting primary key id from database for later use
 			ResultSet key_rs = trueStmt.getGeneratedKeys();
 			key_rs.next();
-			product.setProductId(String.valueOf(key_rs.getInt(1)));
+			order.setOrderId(key_rs.getInt(1));
 			
-			assertTrue(" inserting test product not successful", 1 == i);
+			assertTrue(" inserting test supplier no successful", 1 == trueStmt.executeUpdate());
 		} catch (SQLException e) {
 			fail("SQLException thrown  " + e);
 		}
 		
 		//to test deleteSupplier
-		sql = "delete from product " +"where product_id = ?;";
+		sql = "delete from all_order " + "where order_id = ?;";
 		
 		try {
 			
@@ -236,12 +247,14 @@ public class ProductDaoImplTest {
 		}
 		
 		try {
-			boolean result = productDao.deleteProduct(product.getProductId());
 			
-			verify(spy).setInt(1, Integer.parseInt(product.getProductId()));
+			boolean result = orderDao.deleteOrder(order.getOrderId());
+			
+			verify(spy).setInt(1, order.getOrderId());
+			
 			verify(spy).executeUpdate();
 			
-			assertTrue("Object was not deleted properly", result);
+			assertEquals("Object was not deleted properly", true, result);
 
 		} catch (SQLException e) {
 			fail("SQLException thrown  " + e);
@@ -261,6 +274,6 @@ public class ProductDaoImplTest {
 		when(connUtil.createConnection()).thenReturn(connection);
 		when(connection.prepareStatement(sql)).thenReturn(spy);
 	
-}
+	}
 
 }

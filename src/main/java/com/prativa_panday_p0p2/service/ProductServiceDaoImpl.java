@@ -19,27 +19,36 @@ public class ProductServiceDaoImpl implements ProductService {
 
 	@Override
 	public Product createProductFromDao(Product product) {
-		productDao.createProduct(product);
-		return product;
+		boolean isProductCreated = productDao.createProduct(product);
+		if(isProductCreated) return product;
+		else return null;
 	}
 
-	@Override
-	public List<Product> getProductByType(ProductCategory productCat) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public boolean checkIfDamaged(Product p) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 
 	@Override
 	public Product getProduct(String prodName) {
+		return productDao.retrieveProduct(prodName);
+	}
+
+	@Override
+	public boolean deleteProduct(String prodId) {
+		
+		return productDao.deleteProduct(prodId);
+	}
+
+	@Override
+	public List<Product> getAllProducts() {
+		
+		return productDao.retrieveAllProduct();
+	}
+
+	@Override
+	public Product updateProduct(String prodName) {
 		// TODO Auto-generated method stub
-		productDao.retrieveProduct(prodName);
 		return null;
 	}
+	
+	
 	
 }

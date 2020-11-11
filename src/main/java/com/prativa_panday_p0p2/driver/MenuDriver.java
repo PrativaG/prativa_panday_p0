@@ -6,13 +6,14 @@ import java.util.List;
 import java.util.Scanner;
 //import java.util.logging.Logger;
 
-import com.revature.project0.pojos.Order;
-import com.revature.project0.pojos.Product;
-import com.revature.project0.pojos.Supplier;
-import com.revature.project0.pojos.Product.ProductCategory;
-import com.revature.project0.service.OrderServiceImpl;
-import com.revature.project0.service.ProductServiceImpl;
-import com.revature.project0.service.SupplierServiceImpl;
+import com.prativa_panday_p0p2.pojos.Order;
+import com.prativa_panday_p0p2.pojos.Product;
+import com.prativa_panday_p0p2.pojos.Product.ProductCategory;
+import com.prativa_panday_p0p2.pojos.Supplier;
+import com.prativa_panday_p0p2.service.OrderServiceImpl;
+import com.prativa_panday_p0p2.service.ProductServiceImpl;
+import com.prativa_panday_p0p2.service.SupplierServiceImpl;
+
 
 public class MenuDriver {
 	
@@ -109,7 +110,7 @@ public class MenuDriver {
 					System.out.println("Enter the email id of the supplier");
 					String email = scan.nextLine();
 					
-					Supplier supplier = supplierImpl.createSupplier(supplierId, supplierName, contactNum, email);
+//					Supplier supplier = supplierImpl.createSupplier(supplierId, supplierName, contactNum, email);
 					
 					System.out.println("\n ---------------Order Details-------------------");
 					

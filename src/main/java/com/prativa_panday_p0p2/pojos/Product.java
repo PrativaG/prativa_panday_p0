@@ -43,14 +43,12 @@ public class Product {
 		this.productQuality = productQuality;
 	}
 	
-	public Product(ProductCategory productCat, String productName, double costPrice, double sellPrice, int quantity) {
+	public Product( String productName, double costPrice, double sellPrice, int quantity) {
 		super();
-		this.setProductCategory(productCat);
 		this.productName = productName;
 		this.costPrice = costPrice;
 		this.sellPrice = sellPrice;
 		this.productQuantity = quantity;
-//		this.expiryDate = expiryDate;
 	}
 
 
@@ -103,6 +101,12 @@ public class Product {
 		this.productQuality = productQuality;
 	}
 
+	@Override
+	public String toString() {
+		return "Product [productName=" + productName + ", costPrice=" + costPrice
+				+ ", sellPrice=" + sellPrice + ", productQuantity=" + productQuantity + "]";
+	}
+
 	public ProductCategory getProductCategory() {
 		return productCategory;
 	}
@@ -112,5 +116,4 @@ public class Product {
 	}
 
 	
-
 }

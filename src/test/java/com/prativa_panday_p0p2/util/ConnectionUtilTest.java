@@ -7,7 +7,10 @@ import java.sql.SQLException;
 
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ConnectionUtilTest {
 
 	private ConnectionUtil connectionUtil = new ConnectionUtil();
@@ -16,6 +19,12 @@ public class ConnectionUtilTest {
 	public void test() throws SQLException {
 		Connection conn = connectionUtil.createConnection();
 		conn.close();
+		
+		try {
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 	}
 
 }
